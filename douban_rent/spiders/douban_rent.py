@@ -78,11 +78,11 @@ class DoubanRent(scrapy.Spider):
         try:
             try:
                 rent = re.findall(r".{0,5}\d{4}.{5}", content)
-                rent = list(filter(lambda x: re.findall("[预算均转元租押月]", x), rent))
+                rent = list(filter(lambda x: re.findall("[预算均转元租押]", x), rent))
                 rent = re.findall("\d{4}", rent[0])[0]
             except:
                 rent = re.findall(r".{0,5}\d{4}.{5}", title)
-                rent = list(filter(lambda x: re.findall("[预算均转元租押月]", x), rent))
+                rent = list(filter(lambda x: re.findall("[预算均转元租押]", x), rent))
                 rent = re.findall("\d{4}", rent[0])[0]
         except:
             rent = "自己看"
