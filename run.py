@@ -8,9 +8,17 @@ from email.mime.text import MIMEText
 import smtplib
 import sys
 
-keywords = ["一房一厅", "一室一厅", "宠物"]
+keywords = [
+"一房一厅", "一室一厅", "宠物",
+"广州火车站", "小北", "越秀公园", "纪念堂", 
+"公园前", "海珠广场", "北京路", "团一大广场",
+"杨箕", "五羊邨", "员村", "猎德", "潭村",
+"烈士陵园", "东山口", "东湖", "动物园",
+"区庄", "淘金", "黄花岗", ""
+]
+
 stopwords = ["合租", "次卧", "主卧", "限男生", "三房", "两房", "二房"]
-maxrent = 2000
+maxrent = 3000
 
 def send_email(to_addrs, content):
     
@@ -41,7 +49,9 @@ def filter(row, sent_list):
         return False
     for key_word in keywords:
         if key_word in row["title"] or key_word in row["content"]:
-            if row["rent"] != "自己看" and int(row["rent"]) < maxrent:
+            if row["rent"] == "自己看":
+                return True
+            elif int(row["rent"]) < maxrent:
                 return True
     return False
 
@@ -83,13 +93,13 @@ if __name__ == "__main__":
     send_interval = sys.argv[1]
 
     # send_email("346296203@qq.com", "测试")
-    to_addrs = ["346296203@qq.com"]
+    to_addrs = ["346296203@qq.com", "543693275@qq.com"]
     # send_info(to_addrs)
 
     sched = BlockingScheduler(timezone="Asia/Shanghai")
     # 每2小时抓一次数据
     # sched.add_job(craw_data, 'interval', seconds=7200)
-    # 每3小时发送一次
+    # 每指定频率发送一次
     sched.add_job(send_info, 'interval', seconds=int(send_interval), args=[to_addrs])
     sched.start()
 
