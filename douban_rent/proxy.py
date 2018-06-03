@@ -1,6 +1,5 @@
 import random
 from scrapy.downloadermiddlewares.httpproxy import HttpProxyMiddleware
-from pymongo import MongoClient
 from scrapy import log
 import re
 import base64
