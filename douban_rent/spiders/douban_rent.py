@@ -20,9 +20,19 @@ import requests
 from bs4 import BeautifulSoup
 
 class DoubanRent(scrapy.Spider):
+    proxyMeta = "http://%(user)s:%(pass)s@%(host)s:%(port)s" % {
+      "host" : "http://http-dyn.abuyun.com",
+      "port" : 9020,
+      "user" : "H21L8A02A50X8TSD",
+      "pass" : "7FC9A765E9D70BEB",
+    }
+    proxies = {
+        "http"  : proxyMeta,
+        "https" : proxyMeta,
+    }
 
     name = 'DoubanRent'
-    last_hour = 720
+    last_hour = 2
     headers = {
         "User-Agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36"
         }
@@ -43,15 +53,17 @@ class DoubanRent(scrapy.Spider):
         for url in start_urls:
             for pagenum in range(40):
                 nexturl = url + "start={}".format(pagenum*25)
-                # tmp_response = requests.get(url=nexturl, headers=self.headers)
-                # selector = etree.HTML(tmp_response.text)
-                # lasttime = selector.xpath("//*[@class='time']/text()")[-1]
-                # if lasttime < self.mintime: break
+
+                tmp_response = requests.get(url=nexturl, headers=self.headers)
+                selector = etree.HTML(tmp_response.text)
+                lasttime = selector.xpath("//*[@class='time']/text()")[-1]
+                if lasttime < self.mintime: break
                 yield Request(url=nexturl, callback=self.parse_posts, headers=self.headers)
                 
     def parse_posts(self, response):
         hrefs = response.xpath("//*[@class='olt']//*[@class='title']/a/@href").extract()
         times = response.xpath("//*[@class='time']/text()").extract()
+        if times[-1] < self.mintime: return
         for idx, url in enumerate(hrefs[:-1]):
             if url not in self.save_urls.tolist():
                 yield Request(url=url, callback=self.parse_details, headers=self.headers)
@@ -66,11 +78,11 @@ class DoubanRent(scrapy.Spider):
         try:
             try:
                 rent = re.findall(r".{0,5}\d{4}.{5}", content)
-                rent = list(filter(lambda x: re.findall("[均转元租押月]", x), rent))
+                rent = list(filter(lambda x: re.findall("[预算均转元租押月]", x), rent))
                 rent = re.findall("\d{4}", rent[0])[0]
             except:
                 rent = re.findall(r".{0,5}\d{4}.{5}", title)
-                rent = list(filter(lambda x: re.findall("[均转元租押月]", x), rent))
+                rent = list(filter(lambda x: re.findall("[预算均转元租押月]", x), rent))
                 rent = re.findall("\d{4}", rent[0])[0]
         except:
             rent = "自己看"
