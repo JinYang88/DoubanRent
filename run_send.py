@@ -22,7 +22,7 @@ stopwords = [
  "求", "3房", "2房",
  "四房", "4房"
  ]
- 
+
 maxrent = 3000
 
 def send_email(to_addrs, content):
@@ -95,8 +95,8 @@ if __name__ == "__main__":
     send_interval = sys.argv[1]
 
     # send_email("346296203@qq.com", "测试")
-    # to_addrs = ["346296203@qq.com", "543693275@qq.com"]
-    to_addrs = ["346296203@qq.com"]
+    to_addrs = ["346296203@qq.com", "543693275@qq.com"]
+    # to_addrs = ["346296203@qq.com"]
     # send_info(to_addrs)
 
     sched = BlockingScheduler(timezone="Asia/Shanghai")
