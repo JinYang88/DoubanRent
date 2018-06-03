@@ -1,13 +1,34 @@
+# coding=utf-8
 import pandas as pd
 import time
 from apscheduler.schedulers.blocking import BlockingScheduler
-import itchat
 import os
 import subprocess
+from email.mime.text import MIMEText
+import smtplib
+import sys
 
 keywords = ["一房一厅", "一室一厅", "宠物"]
 stopwords = ["合租", "次卧", "主卧", "限男生", "三房", "两房", "二房"]
 maxrent = 2000
+
+def send_email(to_addrs, content):
+    
+    uptime = "_".join(time.asctime( time.localtime(time.time()) ).split()[1:-1]).replace(":", "_")[0:-3]
+
+    from_addr = "346296203@qq.com"
+    with open("passward.txt") as fr:
+        password = fr.readline().strip()
+    server = smtplib.SMTP_SSL(host='smtp.qq.com', port=465)
+    server.login(from_addr, password)
+
+    for to_addr in to_addrs:
+        msg = MIMEText(content)
+        msg["Subject"] = "看看看看看有啥好房纸！【{}】".format(uptime)
+        msg["From"]    = from_addr
+        msg["To"]      = to_addr
+        server.sendmail(from_addr, to_addr, msg.as_string())
+    server.quit()
 
 def filter(row, sent_list):
     # not in sent
@@ -18,14 +39,13 @@ def filter(row, sent_list):
             return False
     if row["rent"] != "自己看" and int(row["rent"]) > maxrent:
         return False
-
     for key_word in keywords:
         if key_word in row["title"] or key_word in row["content"]:
             if row["rent"] != "自己看" and int(row["rent"]) < maxrent:
                 return True
     return False
 
-def send_info():
+def send_info(to_addrs):
     print("Sending info...")
     try:
         fr = open("sent_list.txt", 'r')
@@ -39,38 +59,38 @@ def send_info():
     send_buffer = []
     fw = open("sent_list.txt", "a")
     for idx, row in rent_df.iterrows():
-        if filter(row, sent_list):
-            sent_item = "---\n{}\n租金:{}\n{}\n---".format(row['title'], row['rent'], row["url"])
+        if filter(row, send_buffer):
+            sent_item = "---\n{}\n租金:{}\n{}\n".format(row['title'], row['rent'], row["url"])
             fw.write(row['url'] + "\n")
-            print(sent_item)
-            itchat.send_msg(msg=sent_item, toUserName="filehelper")
             send_buffer.append(sent_item)
-            # time.sleep(3)
+    fw.close()
     
     idx = 0
+    msg = ""
     while idx < len(send_buffer):
-        sent_msgs = send_buffer[idx: idx+5]
+        msg += "\n".join(send_buffer[idx: idx+5])
+        msg += "\n------------\n"
         idx += 5
-        msg = "\n".join(sent_msgs)
-        itchat.send_msg(msg=msg, toUserName="filehelper")
-        time.sleep(2)
-    fw.close()
+    send_email(to_addrs, msg)
     print("Finish sending.")
 
 def craw_data():
     print("Start crawing data..")
     subprocess.call("python entry_point.py", shell=True)
 
+
 if __name__ == "__main__":
-    
-    itchat.auto_login(enableCmdQR=2, hotReload=True)
-    send_info()
+    send_interval = sys.argv[1]
+
+    # send_email("346296203@qq.com", "测试")
+    to_addrs = ["346296203@qq.com"]
+    # send_info(to_addrs)
 
     sched = BlockingScheduler()
-    # 每1小时抓一次数据
-    sched.add_job(craw_data, 'interval', seconds=3600)
+    # 每2小时抓一次数据
+    # sched.add_job(craw_data, 'interval', seconds=7200)
     # 每3小时发送一次
-    sched.add_job(send_info, 'interval', seconds=7200)
+    sched.add_job(send_info, 'interval', seconds=send_interval, args=[to_addrs])
     sched.start()
 
 

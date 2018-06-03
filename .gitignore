@@ -1,2 +1,4 @@
 *.tsv
 *.pkl
+passward.txt
+sent_list.txt
