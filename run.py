@@ -81,7 +81,8 @@ def send_info(to_addrs):
         msg += "\n".join(send_buffer[idx: idx+5])
         msg += "\n------------\n"
         idx += 5
-    send_email(to_addrs, msg)
+    if msg:
+        send_email(to_addrs, msg)
     print("Finish sending.")
 
 def craw_data():
