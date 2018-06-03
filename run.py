@@ -86,7 +86,7 @@ if __name__ == "__main__":
     to_addrs = ["346296203@qq.com"]
     # send_info(to_addrs)
 
-    sched = BlockingScheduler()
+    sched = BlockingScheduler(timezone="Asia/Shanghai")
     # 每2小时抓一次数据
     # sched.add_job(craw_data, 'interval', seconds=7200)
     # 每3小时发送一次
