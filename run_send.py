@@ -68,7 +68,7 @@ def send_info(to_addrs):
     send_buffer = []
     fw = open("sent_list.txt", "a")
     for idx, row in rent_df.iterrows():
-        if filter(row, send_buffer):
+        if filter(row, sent_list):
             sent_item = "---\n{}\n租金:{}\n{}\n".format(row['title'], row['rent'], row["url"])
             fw.write(row['url'] + "\n")
             send_buffer.append(sent_item)
