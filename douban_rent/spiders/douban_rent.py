@@ -41,12 +41,12 @@ class DoubanRent(scrapy.Spider):
             # "https://www.douban.com/group/tianhezufang/discussion?start=0",
         ]
         for url in start_urls:
-            for pagenum in range(100):
+            for pagenum in range(40):
                 nexturl = url + "start={}".format(pagenum*25)
-                tmp_response = requests.get(url=nexturl, headers=self.headers)
-                selector = etree.HTML(tmp_response.text)
-                lasttime = selector.xpath("//*[@class='time']/text()")[-1]
-                if lasttime < self.mintime: break
+                # tmp_response = requests.get(url=nexturl, headers=self.headers)
+                # selector = etree.HTML(tmp_response.text)
+                # lasttime = selector.xpath("//*[@class='time']/text()")[-1]
+                # if lasttime < self.mintime: break
                 yield Request(url=nexturl, callback=self.parse_posts, headers=self.headers)
                 
     def parse_posts(self, response):
