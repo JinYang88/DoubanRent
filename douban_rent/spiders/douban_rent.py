@@ -53,10 +53,10 @@ class DoubanRent(scrapy.Spider):
         for url in start_urls:
             for pagenum in range(40):
                 nexturl = url + "start={}".format(pagenum*25)
-
                 tmp_response = requests.get(url=nexturl, headers=self.headers)
                 selector = etree.HTML(tmp_response.text)
                 lasttime = selector.xpath("//*[@class='time']/text()")[-1]
+                time.sleep(2)
                 if lasttime < self.mintime: break
                 yield Request(url=nexturl, callback=self.parse_posts, headers=self.headers)
                 

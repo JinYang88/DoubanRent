@@ -3,13 +3,12 @@ import pandas as pd
 import time
 from apscheduler.schedulers.blocking import BlockingScheduler
 import os
-import subprocess
 from email.mime.text import MIMEText
 import smtplib
 import sys
 
 keywords = [
-"一房一厅", "一室一厅", "宠物",
+"1房1厅", "1室1厅", "一房一厅", "一室一厅", "宠物",
 "广州火车站", "小北", "越秀公园", "纪念堂", 
 "公园前", "海珠广场", "北京路", "团一大广场",
 "杨箕", "五羊邨", "员村", "猎德", "潭村",
@@ -17,7 +16,7 @@ keywords = [
 "区庄", "淘金", "黄花岗"
 ]
 
-stopwords = ["合租", "次卧", "主卧", "限男生", "三房", "两房", "二房", "求租"]
+stopwords = ["合租", "次卧", "主卧", "限男生", "三房", "两房", "二房", "求", "3房", "2房"]
 maxrent = 3000
 
 def send_email(to_addrs, content):
@@ -84,10 +83,6 @@ def send_info(to_addrs):
     if msg:
         send_email(to_addrs, msg)
     print("Finish sending.")
-
-def craw_data():
-    print("Start crawing data..")
-    subprocess.call("python entry_point.py", shell=True)
 
 
 if __name__ == "__main__":
