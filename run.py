@@ -5,7 +5,7 @@ import itchat
 import os
 import subprocess
 
-# keywords = ["一房一厅", "一室一厅", "宠物"]
+keywords = ["一房一厅", "一室一厅", "宠物"]
 stopwords = ["合租", "次卧", "主卧", "限男生", "三房", "两房", "二房"]
 maxrent = 2000
 
@@ -16,14 +16,14 @@ def filter(row, sent_list):
     for stop_word in stopwords:
         if stop_word in row["title"] or stop_word in row["content"]:
             return False
-    if row["rent"] != "自己看" and int(row["rent"]) < maxrent:
-        return True
     if row["rent"] != "自己看" and int(row["rent"]) > maxrent:
         return False
-    # for key_word in keywords:
-    #     if key_word in row["title"] or key_word in row["content"]:
-    #         return True
-    return True
+
+    for key_word in keywords:
+        if key_word in row["title"] or key_word in row["content"]:
+            if row["rent"] != "自己看" and int(row["rent"]) < maxrent:
+                return True
+    return False
 
 def send_info():
     print("Sending info...")
@@ -46,6 +46,7 @@ def send_info():
             itchat.send_msg(msg=sent_item, toUserName="filehelper")
             send_buffer.append(sent_item)
             # time.sleep(3)
+    
     idx = 0
     while idx < len(send_buffer):
         sent_msgs = send_buffer[idx: idx+5]
@@ -53,15 +54,12 @@ def send_info():
         msg = "\n".join(sent_msgs)
         itchat.send_msg(msg=msg, toUserName="filehelper")
         time.sleep(2)
-
     fw.close()
     print("Finish sending.")
 
 def craw_data():
+    print("Start crawing data..")
     subprocess.call("python entry_point.py", shell=True)
-
-def job2():
-    print("222")
 
 if __name__ == "__main__":
     
@@ -70,9 +68,9 @@ if __name__ == "__main__":
 
     sched = BlockingScheduler()
     # 每1小时抓一次数据
-    sched.add_job(send_info, 'interval', seconds=3600)
+    sched.add_job(craw_data, 'interval', seconds=3600)
     # 每3小时发送一次
-    sched.add_job(job2, 'interval', seconds=7200)
+    sched.add_job(send_info, 'interval', seconds=7200)
     sched.start()
 
 
