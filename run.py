@@ -90,7 +90,7 @@ if __name__ == "__main__":
     # 每2小时抓一次数据
     # sched.add_job(craw_data, 'interval', seconds=7200)
     # 每3小时发送一次
-    sched.add_job(send_info, 'interval', seconds=send_interval, args=[to_addrs])
+    sched.add_job(send_info, 'interval', seconds=int(send_interval), args=[to_addrs])
     sched.start()
 
 
