@@ -14,10 +14,10 @@ keywords = [
 "公园前", "海珠广场", "北京路", "团一大广场",
 "杨箕", "五羊邨", "员村", "猎德", "潭村",
 "烈士陵园", "东山口", "东湖", "动物园",
-"区庄", "淘金", "黄花岗", ""
+"区庄", "淘金", "黄花岗"
 ]
 
-stopwords = ["合租", "次卧", "主卧", "限男生", "三房", "两房", "二房"]
+stopwords = ["合租", "次卧", "主卧", "限男生", "三房", "两房", "二房", "求租"]
 maxrent = 3000
 
 def send_email(to_addrs, content):
@@ -94,7 +94,8 @@ if __name__ == "__main__":
     send_interval = sys.argv[1]
 
     # send_email("346296203@qq.com", "测试")
-    to_addrs = ["346296203@qq.com", "543693275@qq.com"]
+    # to_addrs = ["346296203@qq.com", "543693275@qq.com"]
+    to_addrs = ["346296203@qq.com"]
     # send_info(to_addrs)
 
     sched = BlockingScheduler(timezone="Asia/Shanghai")
