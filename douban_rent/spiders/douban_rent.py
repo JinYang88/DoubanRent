@@ -46,9 +46,9 @@ class DoubanRent(scrapy.Spider):
             # 荔湾租房
             "https://www.douban.com/group/liwanzufang/discussion?",
             # 越秀租房
-            "https://www.douban.com/group/yuexiuzufang/discussion?start=0",
+            "https://www.douban.com/group/yuexiuzufang/discussion?",
             # # 天河租房
-            # "https://www.douban.com/group/tianhezufang/discussion?start=0",
+            "https://www.douban.com/group/tianhezufang/discussion?",
         ]
         for url in start_urls:
             for pagenum in range(40):
