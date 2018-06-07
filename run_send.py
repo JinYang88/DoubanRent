@@ -105,12 +105,20 @@ class info_sender():
         server = smtplib.SMTP_SSL(host='smtp.qq.com', port=465)
         server.login(from_addr, password)
         for to_addr, format_msg in self.user_sendbuff.items():
-            msg = MIMEText(format_msg)
-            msg["Subject"] = "租房信息【{}】".format(uptime)
-            msg["From"]    = from_addr
-            msg["To"]      = to_addr
-            server.sendmail(from_addr, to_addr, msg.as_string())
-            time.sleep(3)
+            if format_msg:
+                declare = \
+                "=============\n" + \
+                "1. 每5小时会发送发送时间前5小时在豆瓣【天河，荔湾，越秀】租房小组的过滤后的新增帖。\n" + \
+                "2. 第一封邮件内容可能会较多，包含近期历史帖子。\n" + \
+                "3. 目前价格识别算法还不完善，有些需要点进去帖子里面看价格。\n" + \
+                "=============\n"
+                format_msg = declare + format_msg
+                msg = MIMEText(format_msg)
+                msg["Subject"] = "租房信息【{}】".format(uptime)
+                msg["From"]    = from_addr
+                msg["To"]      = to_addr
+                server.sendmail(from_addr, to_addr, msg.as_string())
+                time.sleep(3)
         server.quit()
 
     def send(self):
