@@ -3,3 +3,4 @@
 *.pkl
 passward.txt
 sent_list.txt
+user_sent_list.json

@@ -6,104 +6,132 @@ import os
 from email.mime.text import MIMEText
 import smtplib
 import sys
+import json
+from collections import defaultdict
 
-keywords = [
-"1房1厅", "1室1厅", "一房一厅", "一室一厅", "宠物",
-"广州火车站", "小北", "越秀公园", "纪念堂", 
-"公园前", "海珠广场", "北京路", "团一大广场",
-"杨箕", "五羊邨", "员村", "猎德", "潭村",
-"烈士陵园", "东山口", "东湖", "动物园",
-"区庄", "淘金", "黄花岗"
-]
+class info_sender():
+    def __init__(self, user_config_file, rent_info_file):
+        self.user_config_file = user_config_file
+        self.rent_info_file = rent_info_file
+        self.user_config_dict = defaultdict(dict)
+        self.user_sent_list = defaultdict(list)
+        self.rent_df = None
+        self.user_sendbuff = {}
 
-stopwords = [
-"合租", "次卧", "主卧", "限男生", 
-"三房", "两房", "二房",
- "求", "3房", "2房",
- "四房", "4房"
- ]
+        self.sent_list_file = "user_sent_list.json"
 
-maxrent = 3000
+    def load_config(self):
+        print("Loading User Config.")
+        user_config_df = pd.read_excel(self.user_config_file)
+        for idx, row in user_config_df.iterrows():
+            email = row["邮箱"]
+            if pd.isnull(email): continue
+            keywords = [] if pd.isnull(row["关键词"]) else row["关键词"].split(",")
+            stopwords = [] if pd.isnull(row["停用词"]) else row["停用词"].split(",")
+            max_rent = None if pd.isnull(row["最大租金"]) else row["最大租金"]
+            self.user_config_dict[email]["keywords"] = keywords
+            self.user_config_dict[email]["stopwords"] = stopwords
+            self.user_config_dict[email]["max_rent"] = max_rent
 
-def send_email(to_addrs, content):
-    
-    uptime = "_".join(time.asctime( time.localtime(time.time()) ).split()[1:-1]).replace(":", "_")[0:-3]
+    def load_rent_info(self):
+        print("Loading Rent Info.")
+        self.rent_df = pd.read_csv("rent_info.tsv", sep="\t", names=["title", "rent", "time", "url", "content"])
+        self.rent_df.dropna(inplace=True)
 
-    from_addr = "346296203@qq.com"
-    with open("passward.txt") as fr:
-        password = fr.readline().strip()
-    server = smtplib.SMTP_SSL(host='smtp.qq.com', port=465)
-    server.login(from_addr, password)
+    def load_sent_list(self):
+        try:
+            print("Loading Sent List.")
+            if os.path.isfile(self.sent_list_file):
+                with open(self.sent_list_file) as fr:
+                    self.user_sent_list = json.load(fr)
+        except Exception as msg:
+            print("Error: [{}]".format(msg))
+            print("Initialize new.")
 
-    for to_addr in to_addrs:
-        msg = MIMEText(content)
-        msg["Subject"] = "看看看看看有啥好房纸！【{}】".format(uptime)
-        msg["From"]    = from_addr
-        msg["To"]      = to_addr
-        server.sendmail(from_addr, to_addr, msg.as_string())
-    server.quit()
+    def filter_info(self, info, user_email, config_info):
+        if info["url"] in self.user_sent_list[user_email]: 
+            return False 
 
-def filter(row, sent_list):
-    # not in sent
-    if row["url"] in sent_list: 
-        return False 
-    for stop_word in stopwords:
-        if stop_word in row["title"] or stop_word in row["content"]:
-            return False
-    if row["rent"] != "自己看" and int(row["rent"]) > maxrent:
+        if config_info["stopwords"]:
+            for stop_word in config_info["stopwords"]:
+                if stop_word in info["title"] or stop_word in info["content"]:
+                    return False
+        
+        if config_info["max_rent"]:
+            if info["rent"] != "自己看" and int(info["rent"]) > config_info["max_rent"]:
+                return False
+
+        if config_info["keywords"]:
+            for key_word in config_info["keywords"]:
+                if key_word in info["title"] or key_word in info["content"]:
+                    print("命中", key_word)
+                    if info["rent"] == "自己看":
+                        return True
+                    elif config_info["max_rent"] and int(info["rent"]) < config_info["max_rent"]:
+                        return True
         return False
-    for key_word in keywords:
-        if key_word in row["title"] or key_word in row["content"]:
-            if row["rent"] == "自己看":
-                return True
-            elif int(row["rent"]) < maxrent:
-                return True
-    return False
 
-def send_info(to_addrs):
-    print("Sending info...")
-    try:
-        fr = open("sent_list.txt", 'r')
-        sent_list = [line.strip() for line in fr]
-        fr.close()
-    except:
-        sent_list = []
-    rent_df = pd.read_csv("rent_info.tsv", sep="\t", names=["title", "rent", "time", "url", "content"])
-    rent_df.dropna(inplace=True)
+    def filter_rent_info(self, user_email, config_info):
+        send_list = []
+        for idx, info in self.rent_df.iterrows():
+            if self.filter_info(info, user_email, config_info):
+                send_list.append(info)
+        return send_list
 
-    send_buffer = []
-    fw = open("sent_list.txt", "a")
-    for idx, row in rent_df.iterrows():
-        if filter(row, sent_list):
-            sent_item = "---\n{}\n租金:{}\n{}\n".format(row['title'], row['rent'], row["url"])
-            fw.write(row['url'] + "\n")
-            send_buffer.append(sent_item)
-    fw.close()
-    
-    idx = 0
-    msg = ""
-    while idx < len(send_buffer):
-        msg += "\n".join(send_buffer[idx: idx+5])
-        msg += "\n------------\n"
-        idx += 5
-    if msg:
-        send_email(to_addrs, msg)
-    print("Finish sending.")
+    def filter_for_users(self):
+        for user_email, config_info in self.user_config_dict.items():
+            print("Sending to [{}]".format(user_email))
+            send_list = self.filter_rent_info(user_email, config_info)
+            format_msg = ""
+            for idx, info in enumerate(send_list):
+                self.user_sent_list[user_email].append(info["url"])
+                format_msg += "*--------------*\n"
+                format_msg += "标题:[{}]\n".format(info["title"])
+                format_msg += "租金:[{}]\n".format(info["rent"].replace("自己看", "NULL"))
+                format_msg += "地址:[{}]\n".format(info["url"])
+                format_msg += "*--------------*\n"
+                format_msg += "\n\n"
+            self.user_sendbuff[user_email] = format_msg
+        
+        print("Dumping Sent List.")
+        with open(self.sent_list_file, "w") as fw:
+            json.dump(self.user_sent_list, fw, indent=4)
 
+    def send_email(self):
+        uptime = "_".join(time.asctime( time.localtime(time.time()) ).split()[1:-1]).replace(":", "_")[0:-3]
+        from_addr = "346296203@qq.com"
+        with open("passward.txt") as fr:
+            password = fr.readline().strip()
+        server = smtplib.SMTP_SSL(host='smtp.qq.com', port=465)
+        server.login(from_addr, password)
+        for to_addr, format_msg in self.user_sendbuff.items():
+            msg = MIMEText(format_msg)
+            msg["Subject"] = "租房信息【{}】".format(uptime)
+            msg["From"]    = from_addr
+            msg["To"]      = to_addr
+            server.sendmail(from_addr, to_addr, msg.as_string())
+            time.sleep(3)
+        server.quit()
+
+    def send(self):
+            print("Start Sending.")
+            self.load_config()
+            self.load_rent_info()
+            self.load_sent_list()
+            self.filter_for_users()
+            self.send_email()
+            print("Finish Sending.")
 
 if __name__ == "__main__":
     send_interval = sys.argv[1]
 
-    # send_email("346296203@qq.com", "测试")
-    to_addrs = ["346296203@qq.com", "543693275@qq.com"]
-    # to_addrs = ["346296203@qq.com"]
-    # send_info(to_addrs)
-
+    user_config_file = "user_config.xls"
+    rent_info_file = "rent_info.tsv"
+    sender = info_sender(user_config_file, rent_info_file)
     sched = BlockingScheduler(timezone="Asia/Shanghai")
-    # 每2小时抓一次数据
-    # sched.add_job(craw_data, 'interval', seconds=7200)
+
     # 每指定频率发送一次
-    sched.add_job(send_info, 'interval', seconds=int(send_interval), args=[to_addrs])
+    sched.add_job(sender.send, 'interval', seconds=int(send_interval))
     sched.start()
 
 
