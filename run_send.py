@@ -7,6 +7,7 @@ from email.mime.text import MIMEText
 import smtplib
 import sys
 import json
+import csv
 from collections import defaultdict
 
 class info_sender():
@@ -35,7 +36,8 @@ class info_sender():
 
     def load_rent_info(self):
         print("Loading Rent Info.")
-        self.rent_df = pd.read_csv("rent_info.tsv", sep="\t", names=["title", "rent", "time", "url", "content"])
+        self.rent_df = pd.read_csv("rent_info.tsv", error_bad_lines=False, quoting=csv.QUOTE_NONE,
+                                    sep="\t", names=["title", "rent", "time", "url", "content"])
         self.rent_df.dropna(inplace=True)
 
     def load_sent_list(self):
