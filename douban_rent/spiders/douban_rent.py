@@ -18,6 +18,7 @@ from lxml import etree
 import time
 import requests
 from bs4 import BeautifulSoup
+import csv
 
 class DoubanRent(scrapy.Spider):
     proxyMeta = "http://%(user)s:%(pass)s@%(host)s:%(port)s" % {
