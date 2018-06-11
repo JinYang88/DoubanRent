@@ -38,7 +38,8 @@ class DoubanRent(scrapy.Spider):
         }
     mintime = (datetime.datetime.now() + datetime.timedelta(hours=-last_hour)).strftime('%m-%d %H:%M')
     # mintime = "06-02 14:00"
-    save_urls = pd.read_csv("rent_info.tsv", sep="\t", encoding="utf-8", names=["Title","PostTime","Url","Content"])["Url"]
+    save_urls = pd.read_csv("rent_info.tsv", sep="\t", encoding="utf-8", error_bad_lines=False, quoting=csv.QUOTE_NONE,
+                             names=["Title","PostTime","Url","Content"])["Url"]
 
     def start_requests(self):
         print(self.mintime)

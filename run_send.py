@@ -129,7 +129,7 @@ class info_sender():
             self.load_rent_info()
             self.load_sent_list()
             self.filter_for_users()
-            self.send_email()
+            # self.send_email()
             print("Finish Sending.")
 
 if __name__ == "__main__":
