@@ -53,6 +53,7 @@ class info_sender():
     def filter_info(self, info, user_email, config_info):
         if user_email not in self.user_sent_list:
             self.user_sent_list[user_email] = []
+
         if info["url"] in self.user_sent_list[user_email]: 
             return False 
 
@@ -84,7 +85,7 @@ class info_sender():
 
     def filter_for_users(self):
         for user_email, config_info in self.user_config_dict.items():
-            print("Sending to [{}]".format(user_email))
+            print("Sending to [{}] [{}] items.".format(user_email, len(send_list)))
             send_list = self.filter_rent_info(user_email, config_info)
             format_msg = ""
             for idx, info in enumerate(send_list):
