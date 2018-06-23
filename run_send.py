@@ -51,6 +51,8 @@ class info_sender():
             print("Initialize new.")
 
     def filter_info(self, info, user_email, config_info):
+        if user_email not in self.user_sent_list:
+            self.user_sent_list[user_email] = []
         if info["url"] in self.user_sent_list[user_email]: 
             return False 
 
@@ -138,8 +140,9 @@ if __name__ == "__main__":
     user_config_file = "user_config.xls"
     rent_info_file = "rent_info.tsv"
     sender = info_sender(user_config_file, rent_info_file)
-    sched = BlockingScheduler(timezone="Asia/Shanghai")
+    sender.send()
 
+    sched = BlockingScheduler(timezone="Asia/Shanghai")
     # 每指定频率发送一次
     sched.add_job(sender.send, 'interval', seconds=int(send_interval))
     sched.start()
