@@ -85,8 +85,8 @@ class info_sender():
 
     def filter_for_users(self):
         for user_email, config_info in self.user_config_dict.items():
-            print("Sending to [{}] [{}] items.".format(user_email, len(send_list)))
             send_list = self.filter_rent_info(user_email, config_info)
+            print("Sending to [{}] [{}] items.".format(user_email, len(send_list)))
             format_msg = ""
             for idx, info in enumerate(send_list):
                 self.user_sent_list[user_email].append(info["url"])
