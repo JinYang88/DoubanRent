@@ -36,6 +36,8 @@ class info_sender():
 
     def load_rent_info(self):
         print("Loading Rent Info.")
+        if not os.path.isfile("rent_info.tsv"):
+            open("rent_info.tsv","w+").close()
         self.rent_df = pd.read_csv("rent_info.tsv", error_bad_lines=False, quoting=csv.QUOTE_NONE,
                                     sep="\t", names=["title", "rent", "time", "url", "content"])
         self.rent_df.dropna(inplace=True)

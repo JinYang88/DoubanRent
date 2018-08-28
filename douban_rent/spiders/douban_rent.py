@@ -33,7 +33,7 @@ class DoubanRent(scrapy.Spider):
     }
 
     name = 'DoubanRent'
-    last_hour = 2
+    last_hour = 10
     headers = {
         "User-Agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36"
         }
@@ -42,15 +42,20 @@ class DoubanRent(scrapy.Spider):
     save_urls = pd.read_csv("rent_info.tsv", sep="\t", encoding="utf-8", error_bad_lines=False, quoting=csv.QUOTE_NONE,
                              names=["Title","PostTime","Url","Content"])["Url"]
 
+
+
     def start_requests(self):
         print(self.mintime)
         start_urls = [
-            # 荔湾租房
-            "https://www.douban.com/group/liwanzufang/discussion?",
-            # 越秀租房
-            "https://www.douban.com/group/yuexiuzufang/discussion?",
-            # # 天河租房
-            "https://www.douban.com/group/tianhezufang/discussion?",
+            # 深圳租房团小组
+            "https://www.douban.com/group/106955/discussion?",
+            "https://www.douban.com/group/nanshanzufang/discussion?",
+            "https://www.douban.com/group/futianzufang/discussion?",
+            "https://www.douban.com/group/baoanzufang/discussion?",
+            "https://www.douban.com/group/longhuazufang/discussion?",
+            "https://www.douban.com/group/luohuzufang/discussion?",
+            "https://www.douban.com/group/yantianzufang/discussion?",
+            "https://www.douban.com/group/longgangzufang/discussion?"
         ]
         for url in start_urls:
             for pagenum in range(40):
