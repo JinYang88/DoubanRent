@@ -39,6 +39,8 @@ class DoubanRent(scrapy.Spider):
         }
     mintime = (datetime.datetime.now() + datetime.timedelta(hours=-last_hour)).strftime('%m-%d %H:%M')
     # mintime = "06-02 14:00"
+    if not os.path.isfile("rent_info.tsv"):
+        open("rent_info.tsv","w+").close()
     save_urls = pd.read_csv("rent_info.tsv", sep="\t", encoding="utf-8", error_bad_lines=False, quoting=csv.QUOTE_NONE,
                              names=["Title","PostTime","Url","Content"])["Url"]
 
