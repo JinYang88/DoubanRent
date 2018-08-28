@@ -1,5 +1,6 @@
 #coding = utf-8
 
+import os
 import scrapy
 import urllib.parse
 from scrapy.http import Request
