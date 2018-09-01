@@ -72,6 +72,8 @@ class info_sender():
             for key_word in config_info["keywords"]:
                 if key_word in info["title"] or key_word in info["content"]:
                     print("命中", key_word)
+                    if config_info["max_rent"] is None:
+                        return True
                     if info["rent"] == "自己看":
                         return True
                     elif config_info["max_rent"] and int(info["rent"]) < config_info["max_rent"]:
@@ -113,12 +115,13 @@ class info_sender():
         server.login(from_addr, password)
         for to_addr, format_msg in self.user_sendbuff.items():
             if format_msg:
-                declare = \
-                "=============\n" + \
-                "1. 每5小时会发送发送时间前5小时在豆瓣【天河，荔湾，越秀】租房小组的过滤后的新增帖。\n" + \
-                "2. 第一封邮件内容可能会较多，包含近期历史帖子。\n" + \
-                "3. 目前价格识别算法还不完善，有些需要点进去帖子里面看价格。\n" + \
-                "=============\n"
+                # declare = \
+                # # "=============\n" + \
+                # # "1. 每5小时会发送发送时间前5小时在豆瓣【天河，荔湾，越秀】租房小组的过滤后的新增帖。\n" + \
+                # # "2. 第一封邮件内容可能会较多，包含近期历史帖子。\n" + \
+                # # "3. 目前价格识别算法还不完善，有些需要点进去帖子里面看价格。\n" + \
+                # "=============\n"
+                declare = "\n"
                 format_msg = declare + format_msg
                 msg = MIMEText(format_msg)
                 msg["Subject"] = "租房信息【{}】".format(uptime)
